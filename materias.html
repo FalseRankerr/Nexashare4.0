@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<!-- CORREÇÃO: lang alterado de "es" para "pt-br" -->
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Matérias | NexaShare</title>
+  <link rel="icon" type="image/x-icon" href="./fotos/favicon.ico">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+
+  <!-- CORREÇÃO: <style> movido para o <head> (estava dentro de uma <div>) -->
+  <style>
+    :root {
+      --fondo-oscuro: #1a1d2e;
+      --texto-opaco: rgba(255, 255, 255, 0.7);
+      --texto-claro: rgba(255, 255, 255, 0.95);
+      --acento-primario: #00d4ff;
+      --acento-secundario: #00a708;
+      --espacio-xs: 10px;
+      --espacio-sm: 18px;
+      --espacio-md: 26px;
+      --espacio-lg: 36px;
+      --espacio-xl: 70px;
+      --contenedor-ancho: 1280px;
+      --radio-tarjeta: 18px;
+    }
+
+    .hero-section {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: var(--espacio-xl) var(--espacio-md);
+      position: relative;
+    }
+
+    .card-grid {
+      width: 100%;
+      max-width: var(--contenedor-ancho);
+      display: grid;
+      grid-template-columns: repeat(1, 1fr);
+      gap: var(--espacio-md);
+      position: relative;
+      z-index: 1;
+    }
+
+    .card {
+      position: relative;
+      list-style: none;
+      border-radius: var(--radio-tarjeta);
+      overflow: hidden;
+      box-shadow:
+        0 10px 40px rgba(0, 0, 0, 0.5),
+        0 2px 8px rgba(0, 0, 0, 0.3);
+      transition:
+        transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      text-decoration: none;
+      display: block;
+    }
+
+    .card::before {
+      content: '';
+      display: block;
+      width: 100%;
+      padding-bottom: 145%;
+    }
+
+    .card:hover {
+      transform: translateY(-8px);
+      box-shadow:
+        0 20px 60px rgba(0, 0, 0, 0.6),
+        0 8px 16px rgba(0, 0, 0, 0.4);
+    }
+
+    .card__background {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-size: cover;
+      background-position: center;
+      filter: brightness(0.85) saturate(1.3) contrast(0.9);
+      transform: scale(1) translateZ(0);
+      transform-origin: center;
+      transition:
+        filter 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+        transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .card__background::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(180deg,
+        transparent 0%,
+        rgba(0, 0, 0, 0.3) 50%,
+        rgba(0, 0, 0, 0.8) 100%);
+      opacity: 0.8;
+      transition: opacity 0.4s ease;
+    }
+
+    .card:hover .card__background {
+      transform: scale(1.12) translateZ(0);
+      filter: brightness(1) saturate(1.4) contrast(1);
+    }
+
+    .card:hover .card__background::after {
+      opacity: 0.6;
+    }
+
+    .card-grid:hover > .card:not(:hover) .card__background {
+      filter: brightness(0.4) saturate(0.2) contrast(1.3) blur(8px);
+    }
+
+    .card-grid:hover > .card:not(:hover) .card__background::after {
+      opacity: 0.9;
+    }
+
+    .card__content {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: var(--espacio-md);
+      z-index: 2;
+      transform: translateY(0);
+      transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .card:hover .card__content {
+      transform: translateY(-10px);
+    }
+
+    .card__category {
+      color: var(--texto-opaco);
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: var(--espacio-xs);
+      display: inline-block;
+      position: relative;
+      padding-bottom: 5px;
+    }
+
+    .card__category::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 30px;
+      height: 2px;
+      background: linear-gradient(90deg, var(--acento-primario), var(--acento-secundario));
+      transition: width 0.3s ease;
+    }
+
+    .card:hover .card__category::after {
+      width: 100%;
+    }
+
+    .card__heading {
+      color: var(--texto-claro);
+      font-size: 2rem;
+      font-weight: 800;
+      line-height: 1.3;
+      text-shadow:
+        2px 2px 8px rgba(0, 0, 0, 0.8),
+        0 0 20px rgba(0, 0, 0, 0.5);
+      word-spacing: 100vw;
+      letter-spacing: -0.5px;
+    }
+
+    .card::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      border: 2px solid rgba(255, 255, 255, 0);
+      border-radius: var(--radio-tarjeta);
+      transition: border-color 0.3s ease;
+      pointer-events: none;
+    }
+
+    .card:hover::after {
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    @media (min-width: 600px) {
+      .card-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--espacio-lg);
+      }
+    }
+
+    @media (min-width: 1024px) {
+      .card-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+      .card__heading { font-size: 1.9rem; }
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(40px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .card { animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) backwards; }
+    .card:nth-child(1) { animation-delay: 0.1s; }
+    .card:nth-child(2) { animation-delay: 0.2s; }
+    .card:nth-child(3) { animation-delay: 0.3s; }
+    .card:nth-child(4) { animation-delay: 0.4s; }
+    .card:nth-child(5) { animation-delay: 0.5s; }
+    .card:nth-child(6) { animation-delay: 0.6s; }
+  </style>
+</head>
+
+<!-- CORREÇÃO: <body> aninhado removido; apenas um <body> correto -->
+<body>
+
+  <div class="sidebar" id="sidebar">
+    <div>
+      <div class="header">
+        <img src="https://i.pravatar.cc/100" alt="usuario">
+        <div class="info">
+          <strong>Usuário</strong><br>
+          Estudante
+        </div>
+      </div>
+      <div class="menu">
+        <div class="menu-item"><i class="fas fa-home"></i><a href="./pagina_inicial.html"><span>Inicio</span></a></div>
+        <div class="menu-item"><i class="fa-solid fa-calculator"></i><a href="./calculadora.html"><span>Calculadora</span></a></div>
+        <!-- CORREÇÃO: active em Matérias (página atual) -->
+        <div class="menu-item active"><i class="fa-solid fa-book"></i><a href="./materias.html"><span>Matérias</span></a></div>
+        <div class="menu-item"><i class="fa-regular fa-calendar"></i><a href="./calendario.html"><span>Calendário</span></a></div>
+        <div class="menu-item"><i class="fa-solid fa-gamepad"></i><a href="./exercicios.html"><span>Exercícios</span></a></div>
+        <div class="menu-item"><i class="fa-solid fa-gear"></i><a href="#"><span>Configurações</span></a></div>
+      </div>
+    </div>
+    <div class="bottom">
+      <div class="menu-item"><i class="fas fa-user-circle"></i><a href="./perfil.html"><span>Perfil</span></a></div>
+      <div class="menu-item"><i class="fas fa-sign-out-alt"></i><a href="./Login/login.html"><span>Encerrar sessão</span></a></div>
+      <div class="toggle-theme">
+        <i class="fas fa-moon"></i><span>Modo Escuro</span>
+        <label class="switch">
+          <input type="checkbox" id="theme-toggle">
+        </label>
+      </div>
+      <div class="toggle-sidebar">
+        <i class="fas fa-angle-double-left" id="collapse-icon"></i><span>Colapsar</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-content">
+    <section class="hero-section">
+      <div class="card-grid">
+        <a class="card" href="./assets/pdfs/Matemática%20Básica%20I-Livro.pdf" target="_blank" rel="noopener noreferrer">
+          <div class="card__background" style="background-image: url('./fotos/ChatGPT Image 25 de abr. de 2026, 21_13_38.png')"></div>
+          <div class="card__content">
+            <p class="card__category">Matérias</p>
+            <h3 class="card__heading">Matemática</h3>
+          </div>
+        </a>
+        <a class="card" href="./assets/pdfs/Historia.pdf" target="_blank" rel="noopener noreferrer">
+          <div class="card__background" style="background-image: url('./fotos/ChatGPT Image 25 de abr. de 2026, 21_16_58.png')"></div>
+          <div class="card__content">
+            <p class="card__category">Matérias</p>
+            <h3 class="card__heading">História</h3>
+          </div>
+        </a>
+        <a class="card" href="#" data-unavailable="true">
+          <div class="card__background" style="background-image: url('./fotos/ChatGPT Image 25 de abr. de 2026, 21_19_22.png')"></div>
+          <div class="card__content">
+            <p class="card__category">Matérias</p>
+            <h3 class="card__heading">Geografia</h3>
+          </div>
+        </a>
+        <a class="card" href="./assets/pdfs/Lingua-Portuguesa-GRAFICA-Texto.pdf" target="_blank" rel="noopener noreferrer">
+          <div class="card__background" style="background-image: url('./fotos/ChatGPT Image 25 de abr. de 2026, 21_20_58.png')"></div>
+          <div class="card__content">
+            <p class="card__category">Matérias</p>
+            <h3 class="card__heading">Língua Portuguesa</h3>
+          </div>
+        </a>
+        <a class="card" href="#" data-unavailable="true">
+          <div class="card__background" style="background-image: url('./fotos/ChatGPT Image 25 de abr. de 2026, 21_23_08.png')"></div>
+          <div class="card__content">
+            <p class="card__category">Matérias</p>
+            <h3 class="card__heading">Biologia</h3>
+          </div>
+        </a>
+        <a class="card" href="./assets/pdfs/ingles.pdf" target="_blank" rel="noopener noreferrer">
+          <div class="card__background" style="background-image: url('./fotos/ChatGPT Image 25 de abr. de 2026, 22_13_44.png')"></div>
+          <div class="card__content">
+            <p class="card__category">Matérias</p>
+            <h3 class="card__heading">Língua Inglesa</h3>
+          </div>
+        </a>
+      </div>
+    </section>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    document.querySelectorAll('[data-unavailable="true"]').forEach(function (card) {
+      card.addEventListener('click', function (event) {
+        event.preventDefault();
+        alert('PDF desta matéria ainda não está disponível.');
+      });
+    });
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NexaShare — Login</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/x-icon" href="../fotos/favicon.ico">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; }
+    input, button, .caixa-login { font-family: inherit; }
+  </style>
+</head>
+<body>
+
+  <!-- Modo Escuro -->
+  <div class="toggle-theme-login">
+    <span>Modo Escuro</span>
+    <label class="switch">
+      <input type="checkbox" id="theme-toggle">
+    </label>
+  </div>
+
+  <!-- Logo -->
+  <div class="logotipo">
+    <a href="../pagina_inicial.html">
+      <img src="../fotos/nexalogo.png" alt="Logo">
+    </a>
+  </div>
+
+  <!-- Formulário de login -->
+  <div class="caixa-login">
+    <img src="../fotos/nexalogo.png" alt="Logo" class="logotipo-pequeno">
+    <h2>Login</h2>
+    <input type="email" placeholder="Digite seu e-mail" id="email" required>
+    <div class="erro" id="erro-email"></div>
+    <input type="password" placeholder="Digite sua senha" id="senha">
+    <div class="erro" id="erro-senha"></div>
+    <a href="recuperar-senha.html">Esqueceu a senha?</a>
+    <button class="botao-entrar" id="btn-entrar">Entrar</button>
+    <a href="cadastro.html" class="botao-registrar">Registre-se</a>
+  </div>
+
+  <script>
+  (function () {
+
+    // ── Tema claro/escuro ──
+    var botaoTema = document.getElementById('theme-toggle');
+    var isSwitch  = botaoTema && botaoTema.type === 'checkbox';
+    var corpo     = document.body;
+
+    if (localStorage.getItem('tema') === 'escuro') {
+      corpo.classList.add('modo-escuro');
+      if (isSwitch) botaoTema.checked = true;
+    }
+
+    if (botaoTema) {
+      botaoTema.addEventListener(isSwitch ? 'change' : 'click', function () {
+        if (isSwitch) corpo.classList.toggle('modo-escuro', botaoTema.checked);
+        else corpo.classList.toggle('modo-escuro');
+        localStorage.setItem('tema', corpo.classList.contains('modo-escuro') ? 'escuro' : 'claro');
+      });
+    }
+
+    // ── Elementos ──
+    var emailInput = document.getElementById('email');
+    var senhaInput = document.getElementById('senha');
+    var btnEntrar  = document.getElementById('btn-entrar');
+    var erroEmail  = document.getElementById('erro-email');
+    var erroSenha  = document.getElementById('erro-senha');
+
+    function limparErros() {
+      erroEmail.textContent = '';
+      erroSenha.textContent = '';
+    }
+
+    function validarEmail(e) {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
+    }
+
+    // Enter dispara login
+    emailInput.addEventListener('keypress', function (e) { if (e.key === 'Enter') btnEntrar.click(); });
+    senhaInput.addEventListener('keypress', function (e) { if (e.key === 'Enter') btnEntrar.click(); });
+
+    // ── Login ──
+    btnEntrar.addEventListener('click', function () {
+      limparErros();
+
+      var email = (emailInput.value || '').trim().toLowerCase();
+      var senha = senhaInput.value || '';
+
+      if (!validarEmail(email)) { erroEmail.textContent = 'E-mail inválido.'; return; }
+      if (!senha)               { erroSenha.textContent = 'Senha obrigatória.'; return; }
+
+      // Busca em nexa_users (lista completa)
+      var users = [];
+      try { users = JSON.parse(localStorage.getItem('nexa_users')) || []; } catch (e) {}
+      var found = users.find(function (u) {
+        return u.email && u.email.toLowerCase() === email && u.password === senha;
+      });
+
+      // Busca em nexa_registered (legado / primeiro cadastro)
+      if (!found) {
+        var reg = null;
+        try { reg = JSON.parse(localStorage.getItem('nexa_registered')); } catch (e) {}
+        if (reg && reg.email && reg.email.toLowerCase() === email) {
+          if (reg.password !== senha) { erroSenha.textContent = 'Senha incorreta.'; return; }
+          found = reg;
+        }
+      }
+
+      if (!found) { erroSenha.textContent = 'Usuário não encontrado. Faça o cadastro.'; return; }
+
+      var session = {
+        username: found.username || found.name || email.split('@')[0],
+        name:     found.name     || found.username || email.split('@')[0],
+        email:    email,
+        role:     found.role || 'user'
+      };
+
+      localStorage.setItem('nexa_logged_in', JSON.stringify(session));
+
+      // Admin vai ao painel; estudante vai à página inicial
+      window.location.href = session.role === 'admin' ? '../admin.html' : '../pagina_inicial.html';
+    });
+
+  })();
+  </script>
+</body>
+</html>

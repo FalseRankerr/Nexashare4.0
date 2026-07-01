@@ -1,0 +1,1332 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calendário | NexaShare</title>
+  <link rel="icon" type="image/x-icon" href="./fotos/favicon.ico">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* ── Layout ── */
+    .cal-shell {
+      margin-left: 250px;
+      min-height: 100vh;
+      padding: 32px;
+      background: linear-gradient(180deg, #f4f7fb 0%, #eef2f7 100%);
+      transition: margin-left 0.3s ease;
+      font-family: 'Inter', system-ui, sans-serif;
+    }
+
+    .sidebar.collapsed ~ .cal-shell { margin-left: 80px; }
+
+    body.dark .cal-shell {
+      background: linear-gradient(180deg, #0e1625 0%, #111a2a 100%);
+      color: #e8ecf6;
+    }
+
+    .cal-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      gap: 24px;
+    }
+
+    /* ── Cabeçalho ── */
+    .cal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+
+    .cal-header h1 {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      font-size: clamp(24px, 3vw, 36px);
+      font-weight: 700;
+    }
+
+    .cal-header-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    /* ── Botões ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 11px 16px;
+      border-radius: 12px;
+      border: 0;
+      font: 600 14px 'Inter', sans-serif;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+      text-decoration: none;
+    }
+
+    .btn:hover { transform: translateY(-1px); filter: brightness(1.04); }
+    .btn:active { transform: none; }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #00a708, #0e7f1f);
+      color: #fff;
+      box-shadow: 0 8px 20px rgba(0,167,8,0.28);
+    }
+
+    .btn-ghost {
+      background: rgba(0,0,0,0.06);
+      color: inherit;
+    }
+
+    body.dark .btn-ghost { background: rgba(255,255,255,0.09); color: #e8ecf6; }
+
+    /* ── Linha de navegação do mês ── */
+    .month-nav {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .month-nav button {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: 1px solid rgba(0,0,0,0.1);
+      background: #fff;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: background 0.2s;
+      color: #1e1e2f;
+    }
+
+    body.dark .month-nav button {
+      background: rgba(255,255,255,0.08);
+      border-color: rgba(255,255,255,0.12);
+      color: #e8ecf6;
+    }
+
+    .month-nav button:hover { background: #f0f0f0; }
+    body.dark .month-nav button:hover { background: rgba(255,255,255,0.15); }
+
+    .month-nav h2 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 700;
+      min-width: 200px;
+      text-align: center;
+    }
+
+    /* ── Grid Principal ── */
+    .cal-grid {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 24px;
+      align-items: start;
+    }
+
+    /* ── Calendário ── */
+    .calendar-wrap {
+      background: #fff;
+      border-radius: 24px;
+      box-shadow: 0 14px 40px rgba(14,26,47,0.09);
+      overflow: hidden;
+      border: 1px solid rgba(0,0,0,0.06);
+    }
+
+    body.dark .calendar-wrap {
+      background: rgba(17,24,39,0.82);
+      border-color: rgba(255,255,255,0.08);
+    }
+
+    .cal-weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      background: linear-gradient(135deg, #00a708, #0e7f1f);
+      padding: 14px 0;
+    }
+
+    .cal-weekdays span {
+      text-align: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.85);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .cal-days {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 1px;
+      background: rgba(0,0,0,0.05);
+    }
+
+    body.dark .cal-days { background: rgba(255,255,255,0.05); }
+
+    .cal-day {
+      background: #fff;
+      min-height: 90px;
+      padding: 8px;
+      cursor: pointer;
+      transition: background 0.15s ease;
+      position: relative;
+    }
+
+    body.dark .cal-day { background: rgba(17,24,39,0.82); }
+
+    .cal-day:hover { background: rgba(0,167,8,0.06); }
+    body.dark .cal-day:hover { background: rgba(0,167,8,0.1); }
+
+    .cal-day.other-month { opacity: 0.35; }
+
+    .cal-day.today .day-num {
+      background: linear-gradient(135deg, #00a708, #0e7f1f);
+      color: #fff;
+    }
+
+    .cal-day.selected { background: rgba(0,167,8,0.08); }
+    body.dark .cal-day.selected { background: rgba(0,167,8,0.15); }
+
+    .day-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .day-events {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .day-pill {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      cursor: pointer;
+    }
+
+    .day-pill.type-prova    { background: rgba(220,38,38,0.15);  color: #b91c1c; }
+    .day-pill.type-trabalho { background: rgba(234,88,12,0.15);  color: #c2410c; }
+    .day-pill.type-estudo   { background: rgba(0,167,8,0.15);    color: #0e7f1f; }
+    .day-pill.type-reuniao  { background: rgba(79,70,229,0.15);  color: #4338ca; }
+    .day-pill.type-outro    { background: rgba(100,116,139,0.15); color: #475569; }
+
+    body.dark .day-pill.type-prova    { background: rgba(220,38,38,0.22);  color: #fca5a5; }
+    body.dark .day-pill.type-trabalho { background: rgba(234,88,12,0.22);  color: #fdba74; }
+    body.dark .day-pill.type-estudo   { background: rgba(0,167,8,0.22);    color: #86efac; }
+    body.dark .day-pill.type-reuniao  { background: rgba(79,70,229,0.22);  color: #a5b4fc; }
+    body.dark .day-pill.type-outro    { background: rgba(100,116,139,0.22); color: #94a3b8; }
+
+    .more-events {
+      font-size: 11px;
+      color: #64748b;
+      margin-top: 2px;
+    }
+
+    /* ── Painel lateral ── */
+    .side-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .panel-card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 22px;
+      box-shadow: 0 14px 40px rgba(14,26,47,0.09);
+      border: 1px solid rgba(0,0,0,0.06);
+    }
+
+    body.dark .panel-card {
+      background: rgba(17,24,39,0.82);
+      border-color: rgba(255,255,255,0.08);
+    }
+
+    .panel-card h3 {
+      margin: 0 0 16px;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    /* ── Formulário de evento ── */
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .field-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: #64748b;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    body.dark .field-label { color: #94a3b8; }
+
+    .field-input {
+      width: 100%;
+      padding: 11px 13px;
+      border-radius: 12px;
+      border: 1px solid rgba(0,0,0,0.12);
+      background: #f8fafc;
+      font: 14px 'Inter', sans-serif;
+      color: #1e1e2f;
+      outline: none;
+      transition: border-color 0.2s;
+      box-sizing: border-box;
+    }
+
+    body.dark .field-input {
+      background: rgba(9,14,26,0.8);
+      border-color: rgba(255,255,255,0.1);
+      color: #e8ecf6;
+    }
+
+    .field-input:focus { border-color: #00a708; }
+
+    .type-select-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .type-opt {
+      display: none;
+    }
+
+    .type-opt + label {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 10px 6px;
+      border-radius: 12px;
+      border: 1.5px solid rgba(0,0,0,0.08);
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 700;
+      transition: all 0.15s ease;
+      color: #64748b;
+      background: #f8fafc;
+      text-align: center;
+    }
+
+    body.dark .type-opt + label {
+      background: rgba(255,255,255,0.04);
+      border-color: rgba(255,255,255,0.08);
+      color: #94a3b8;
+    }
+
+    .type-opt + label i { font-size: 18px; }
+
+    .type-opt:checked + label {
+      border-color: #00a708;
+      background: rgba(0,167,8,0.1);
+      color: #0e7f1f;
+    }
+
+    body.dark .type-opt:checked + label {
+      background: rgba(0,167,8,0.18);
+      color: #86efac;
+    }
+
+    /* ── Notificação toggle ── */
+    .notif-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .notif-row span {
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .notif-toggle {
+      width: 44px;
+      height: 24px;
+      appearance: none;
+      background: #ccc;
+      border-radius: 24px;
+      position: relative;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .notif-toggle::before {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background: #fff;
+      border-radius: 50%;
+      top: 2px;
+      left: 2px;
+      transition: transform 0.2s;
+    }
+
+    .notif-toggle:checked { background: #00a708; }
+    .notif-toggle:checked::before { transform: translateX(20px); }
+
+    /* ── Lista de avisos do dia selecionado ── */
+    .event-list { display: flex; flex-direction: column; gap: 10px; }
+
+    .event-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px;
+      border-radius: 14px;
+      background: #f8fafc;
+      border: 1px solid rgba(0,0,0,0.06);
+      position: relative;
+    }
+
+    body.dark .event-item {
+      background: rgba(9,14,26,0.6);
+      border-color: rgba(255,255,255,0.06);
+    }
+
+    .event-color {
+      width: 4px;
+      min-height: 100%;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+
+    .event-body { flex: 1; min-width: 0; }
+
+    .event-name {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .event-meta {
+      font-size: 12px;
+      color: #64748b;
+    }
+
+    body.dark .event-meta { color: #94a3b8; }
+
+    .event-delete {
+      background: none;
+      border: 0;
+      color: #94a3b8;
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 6px;
+      transition: color 0.15s, background 0.15s;
+    }
+
+    .event-delete:hover { color: #ef4444; background: rgba(239,68,68,0.1); }
+
+    .empty-state {
+      text-align: center;
+      padding: 20px 10px;
+      color: #94a3b8;
+      font-size: 13px;
+    }
+
+    .empty-state i { font-size: 28px; margin-bottom: 8px; display: block; }
+
+    /* ── Próximos eventos ── */
+    .upcoming-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+    }
+
+    body.dark .upcoming-item { border-color: rgba(255,255,255,0.06); }
+    .upcoming-item:last-child { border-bottom: 0; padding-bottom: 0; }
+
+    .upcoming-date-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: rgba(0,167,8,0.1);
+      flex-shrink: 0;
+      font-weight: 700;
+    }
+
+    .upcoming-date-box .ud-day { font-size: 18px; color: #0e7f1f; line-height: 1; }
+    .upcoming-date-box .ud-mon { font-size: 10px; color: #0e7f1f; text-transform: uppercase; }
+
+    body.dark .upcoming-date-box { background: rgba(0,167,8,0.18); }
+    body.dark .upcoming-date-box .ud-day,
+    body.dark .upcoming-date-box .ud-mon { color: #86efac; }
+
+    .upcoming-body { flex: 1; min-width: 0; }
+
+    .upcoming-name {
+      font-size: 13px;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .upcoming-sub { font-size: 12px; color: #64748b; }
+    body.dark .upcoming-sub { color: #94a3b8; }
+
+    /* ── MODAL ── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 1000;
+      display: none;
+      place-items: center;
+      backdrop-filter: blur(4px);
+    }
+
+    .modal-overlay.open { display: grid; }
+
+    .modal {
+      background: #fff;
+      border-radius: 24px;
+      padding: 28px;
+      width: min(480px, calc(100vw - 32px));
+      box-shadow: 0 30px 80px rgba(0,0,0,0.22);
+      position: relative;
+    }
+
+    body.dark .modal {
+      background: #151e2e;
+      color: #e8ecf6;
+    }
+
+    .modal h3 { margin: 0 0 20px; font-size: 20px; font-weight: 700; }
+
+    .modal-close {
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      background: rgba(0,0,0,0.06);
+      border: 0;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      color: inherit;
+    }
+
+    body.dark .modal-close { background: rgba(255,255,255,0.08); }
+
+    .modal-close:hover { background: rgba(0,0,0,0.12); }
+
+    /* ── NOTIFICAÇÃO TOAST ── */
+    .notif-toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
+
+    .notif-toast {
+      background: #fff;
+      border-radius: 16px;
+      padding: 14px 18px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.18);
+      border-left: 4px solid #00a708;
+      max-width: 320px;
+      pointer-events: all;
+      animation: slideIn 0.3s ease;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    body.dark .notif-toast {
+      background: #1a2540;
+      color: #e8ecf6;
+    }
+
+    .notif-toast.type-prova    { border-left-color: #dc2626; }
+    .notif-toast.type-trabalho { border-left-color: #ea580c; }
+    .notif-toast.type-estudo   { border-left-color: #00a708; }
+    .notif-toast.type-reuniao  { border-left-color: #4f46e5; }
+    .notif-toast.type-outro    { border-left-color: #64748b; }
+
+    .notif-toast-icon { font-size: 20px; flex-shrink: 0; margin-top: 2px; }
+    .notif-toast-body { flex: 1; }
+    .notif-toast-title { font-size: 14px; font-weight: 700; margin-bottom: 3px; }
+    .notif-toast-sub   { font-size: 12px; color: #64748b; }
+    body.dark .notif-toast-sub { color: #94a3b8; }
+
+    .notif-toast-close {
+      background: none;
+      border: 0;
+      color: #94a3b8;
+      cursor: pointer;
+      padding: 2px;
+      line-height: 1;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(40px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    /* ── BADGE no calendário ── */
+    .notif-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #ef4444;
+      color: #fff;
+      font-size: 10px;
+      font-weight: 800;
+      border-radius: 999px;
+      min-width: 18px;
+      height: 18px;
+      padding: 0 5px;
+      margin-left: 6px;
+    }
+
+    /* ── Legenda ── */
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #64748b;
+    }
+
+    body.dark .legend-item { color: #94a3b8; }
+
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 3px;
+    }
+
+    .legend-dot.type-prova    { background: #dc2626; }
+    .legend-dot.type-trabalho { background: #ea580c; }
+    .legend-dot.type-estudo   { background: #00a708; }
+    .legend-dot.type-reuniao  { background: #4f46e5; }
+    .legend-dot.type-outro    { background: #64748b; }
+
+    /* ── Responsivo ── */
+    @media (max-width: 900px) {
+      .cal-shell { margin-left: 0; padding: 18px; }
+      .cal-grid  { grid-template-columns: 1fr; }
+      .cal-day   { min-height: 64px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar" id="sidebar">
+    <div>
+      <div class="header">
+        <img src="https://i.pravatar.cc/100" alt="usuario">
+        <div class="info">
+          <strong>Usuário</strong><br>
+          Estudante
+        </div>
+      </div>
+      <div class="menu">
+        <div class="menu-item"><i class="fas fa-home"></i><a href="./pagina_inicial.html"><span>Inicio</span></a></div>
+        <div class="menu-item"><i class="fa-solid fa-calculator"></i><a href="./calculadora.html"><span>Calculadora</span></a></div>
+        <div class="menu-item"><i class="fa-solid fa-book"></i><a href="./materias.html"><span>Matérias</span></a></div>
+        <div class="menu-item active"><i class="fa-regular fa-calendar"></i><a href="./calendario.html"><span>Calendário</span></a></div>
+        <div class="menu-item"><i class="fa-solid fa-gamepad"></i><a href="./exercicios.html"><span>Exercícios</span></a></div>
+        <div class="menu-item"><i class="fa-solid fa-gear"></i><a href="#"><span>Configurações</span></a></div>
+      </div>
+    </div>
+    <div class="bottom">
+      <div class="menu-item"><i class="fas fa-user-circle"></i><a href="./perfil.html"><span>Perfil</span></a></div>
+      <div class="menu-item"><i class="fas fa-sign-out-alt"></i><a href="#"><span>Encerrar sessão</span></a></div>
+      <div class="toggle-theme">
+        <i class="fas fa-moon"></i><span>Modo Escuro</span>
+        <label class="switch">
+          <input type="checkbox" id="theme-toggle">
+        </label>
+      </div>
+      <div class="toggle-sidebar">
+        <i class="fas fa-angle-double-left" id="collapse-icon"></i><span>Colapsar</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTEÚDO PRINCIPAL -->
+  <main class="cal-shell">
+    <div class="cal-inner">
+
+      <!-- Cabeçalho -->
+      <div class="cal-header">
+        <div>
+          <h1><i class="fa-regular fa-calendar" style="color:#00a708;margin-right:10px;"></i>Calendário</h1>
+          <div class="legend">
+            <span class="legend-item"><span class="legend-dot type-prova"></span>Prova</span>
+            <span class="legend-item"><span class="legend-dot type-trabalho"></span>Trabalho</span>
+            <span class="legend-item"><span class="legend-dot type-estudo"></span>Estudo</span>
+            <span class="legend-item"><span class="legend-dot type-reuniao"></span>Reunião</span>
+            <span class="legend-item"><span class="legend-dot type-outro"></span>Outro</span>
+          </div>
+        </div>
+        <div class="cal-header-actions">
+          <div class="month-nav">
+            <button id="prev-month" aria-label="Mês anterior"><i class="fas fa-chevron-left"></i></button>
+            <h2 id="month-label">—</h2>
+            <button id="next-month" aria-label="Próximo mês"><i class="fas fa-chevron-right"></i></button>
+          </div>
+          <button class="btn btn-ghost" id="goto-today">Hoje</button>
+          <button class="btn btn-primary" id="open-add-modal">
+            <i class="fas fa-plus"></i> Novo evento
+          </button>
+        </div>
+      </div>
+
+      <!-- Grid calendário + painel -->
+      <div class="cal-grid">
+
+        <!-- Calendário -->
+        <div class="calendar-wrap">
+          <div class="cal-weekdays">
+            <span>Dom</span><span>Seg</span><span>Ter</span>
+            <span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span>
+          </div>
+          <div class="cal-days" id="cal-days"></div>
+        </div>
+
+        <!-- Painel lateral -->
+        <div class="side-panel">
+
+          <!-- Eventos do dia -->
+          <div class="panel-card">
+            <h3 id="side-date-title">Selecione um dia</h3>
+            <div class="event-list" id="day-event-list">
+              <div class="empty-state">
+                <i class="fa-regular fa-calendar-check"></i>
+                Clique em um dia para ver os eventos.
+              </div>
+            </div>
+          </div>
+
+          <!-- Próximos eventos -->
+          <div class="panel-card">
+            <h3>📋 Próximos eventos</h3>
+            <div id="upcoming-list">
+              <div class="empty-state">
+                <i class="fas fa-check-circle"></i>
+                Nenhum evento nos próximos 30 dias.
+              </div>
+            </div>
+          </div>
+
+          <!-- Avisos/Notificações -->
+          <div class="panel-card">
+            <h3>🔔 Avisos <span class="notif-badge" id="notif-badge" style="display:none">0</span></h3>
+            <div id="notif-list">
+              <div class="empty-state">
+                <i class="fas fa-bell-slash"></i>
+                Nenhum aviso por enquanto.
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- MODAL: Adicionar / Editar evento -->
+  <div class="modal-overlay" id="event-modal">
+    <div class="modal">
+      <h3 id="modal-title">Novo evento</h3>
+      <button class="modal-close" id="modal-close" aria-label="Fechar"><i class="fas fa-times"></i></button>
+
+      <div class="field-group">
+        <div>
+          <label class="field-label" for="ev-name">Nome do evento</label>
+          <input class="field-input" id="ev-name" type="text" placeholder="Ex.: Prova de Matemática" maxlength="60">
+        </div>
+
+        <div>
+          <label class="field-label">Tipo</label>
+          <div class="type-select-grid">
+            <input class="type-opt" type="radio" name="ev-type" id="t-prova"    value="prova"    checked>
+            <label for="t-prova"><i class="fas fa-file-alt" style="color:#dc2626"></i>Prova</label>
+
+            <input class="type-opt" type="radio" name="ev-type" id="t-trabalho" value="trabalho">
+            <label for="t-trabalho"><i class="fas fa-tasks" style="color:#ea580c"></i>Trabalho</label>
+
+            <input class="type-opt" type="radio" name="ev-type" id="t-estudo"   value="estudo">
+            <label for="t-estudo"><i class="fas fa-book-open" style="color:#00a708"></i>Estudo</label>
+
+            <input class="type-opt" type="radio" name="ev-type" id="t-reuniao"  value="reuniao">
+            <label for="t-reuniao"><i class="fas fa-users" style="color:#4f46e5"></i>Reunião</label>
+
+            <input class="type-opt" type="radio" name="ev-type" id="t-outro"    value="outro">
+            <label for="t-outro"><i class="fas fa-star" style="color:#64748b"></i>Outro</label>
+          </div>
+        </div>
+
+        <div>
+          <label class="field-label" for="ev-date">Data</label>
+          <input class="field-input" id="ev-date" type="date">
+        </div>
+
+        <div>
+          <label class="field-label" for="ev-time">Horário (opcional)</label>
+          <input class="field-input" id="ev-time" type="time">
+        </div>
+
+        <div>
+          <label class="field-label" for="ev-note">Observação (opcional)</label>
+          <input class="field-input" id="ev-note" type="text" placeholder="Ex.: Sala 201, capítulos 3 a 5..." maxlength="120">
+        </div>
+
+        <div>
+          <label class="field-label">Lembrete</label>
+          <div class="notif-row">
+            <span>Avisar com antecedência</span>
+            <input class="notif-toggle" type="checkbox" id="ev-notif" checked>
+          </div>
+          <select class="field-input" id="ev-notif-days" style="margin-top:8px;">
+            <option value="0">No mesmo dia</option>
+            <option value="1" selected>1 dia antes</option>
+            <option value="2">2 dias antes</option>
+            <option value="3">3 dias antes</option>
+            <option value="7">1 semana antes</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-primary" id="save-event" style="flex:1;">Salvar evento</button>
+        <button class="btn btn-ghost"   id="cancel-event">Cancelar</button>
+      </div>
+      <div id="modal-error" style="margin-top:10px;color:#dc2626;font-size:13px;font-weight:600;display:none;"></div>
+    </div>
+  </div>
+
+  <!-- Toasts -->
+  <div class="notif-toast-container" id="toast-container"></div>
+
+  <script src="script.js"></script>
+  <script>
+  (function () {
+    'use strict';
+
+    /* ─── Utils ─── */
+    function readJSON(k, fb) {
+      try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : fb; } catch { return fb; }
+    }
+    function writeJSON(k, v) {
+      try { localStorage.setItem(k, JSON.stringify(v)); } catch {}
+    }
+
+    var MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+                  'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+    var MONTHS_SHORT = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+
+    var TYPE_ICONS = {
+      prova:    { icon: 'fa-file-alt',  label: 'Prova',    color: '#dc2626' },
+      trabalho: { icon: 'fa-tasks',     label: 'Trabalho', color: '#ea580c' },
+      estudo:   { icon: 'fa-book-open', label: 'Estudo',   color: '#00a708' },
+      reuniao:  { icon: 'fa-users',     label: 'Reunião',  color: '#4f46e5' },
+      outro:    { icon: 'fa-star',      label: 'Outro',    color: '#64748b' }
+    };
+
+    var TYPE_COLORS = {
+      prova: '#dc2626', trabalho: '#ea580c', estudo: '#00a708',
+      reuniao: '#4f46e5', outro: '#64748b'
+    };
+
+    /* ─── Estado ─── */
+    var today     = new Date();
+    var curYear   = today.getFullYear();
+    var curMonth  = today.getMonth();
+    var selDay    = null; // string YYYY-MM-DD
+    var editingId = null;
+
+    /* Eventos: { id, name, type, date, time, note, notif, notifDays } */
+    function getEvents() { return readJSON('nexa_calendar_events', []); }
+    function saveEvents(ev) { writeJSON('nexa_calendar_events', ev); }
+
+    /* ─── Calendário ─── */
+    function todayStr() {
+      return today.getFullYear() + '-' +
+        String(today.getMonth()+1).padStart(2,'0') + '-' +
+        String(today.getDate()).padStart(2,'0');
+    }
+
+    function dateStr(y, m, d) {
+      return y + '-' + String(m+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+    }
+
+    function renderCalendar() {
+      var label = document.getElementById('month-label');
+      label.textContent = MONTHS[curMonth] + ' ' + curYear;
+
+      var container = document.getElementById('cal-days');
+      container.innerHTML = '';
+
+      var firstDay = new Date(curYear, curMonth, 1).getDay();
+      var daysInMonth = new Date(curYear, curMonth + 1, 0).getDate();
+      var daysInPrev  = new Date(curYear, curMonth, 0).getDate();
+
+      var events = getEvents();
+      var tStr   = todayStr();
+
+      // dias do mês anterior
+      for (var i = firstDay - 1; i >= 0; i--) {
+        var d = daysInPrev - i;
+        var ds = dateStr(curMonth === 0 ? curYear - 1 : curYear, curMonth === 0 ? 11 : curMonth - 1, d);
+        container.appendChild(buildDayCell(d, ds, true, tStr, events));
+      }
+
+      // dias do mês atual
+      for (var j = 1; j <= daysInMonth; j++) {
+        var ds2 = dateStr(curYear, curMonth, j);
+        container.appendChild(buildDayCell(j, ds2, false, tStr, events));
+      }
+
+      // completar com dias do próximo mês
+      var total = firstDay + daysInMonth;
+      var extra = total % 7 === 0 ? 0 : 7 - (total % 7);
+      for (var k = 1; k <= extra; k++) {
+        var ds3 = dateStr(curMonth === 11 ? curYear + 1 : curYear, curMonth === 11 ? 0 : curMonth + 1, k);
+        container.appendChild(buildDayCell(k, ds3, true, tStr, events));
+      }
+    }
+
+    function buildDayCell(dayNum, ds, otherMonth, tStr, events) {
+      var cell = document.createElement('div');
+      cell.className = 'cal-day' +
+        (otherMonth ? ' other-month' : '') +
+        (ds === tStr ? ' today' : '') +
+        (ds === selDay ? ' selected' : '');
+      cell.dataset.date = ds;
+
+      var numEl = document.createElement('div');
+      numEl.className = 'day-num';
+      numEl.textContent = dayNum;
+      cell.appendChild(numEl);
+
+      var dayEvs = events.filter(function(e){ return e.date === ds; });
+      if (dayEvs.length) {
+        var evWrap = document.createElement('div');
+        evWrap.className = 'day-events';
+        var max = 2;
+        dayEvs.slice(0, max).forEach(function(ev) {
+          var pill = document.createElement('div');
+          pill.className = 'day-pill type-' + ev.type;
+          pill.textContent = ev.name;
+          pill.title = ev.name;
+          evWrap.appendChild(pill);
+        });
+        if (dayEvs.length > max) {
+          var more = document.createElement('div');
+          more.className = 'more-events';
+          more.textContent = '+' + (dayEvs.length - max) + ' mais';
+          evWrap.appendChild(more);
+        }
+        cell.appendChild(evWrap);
+      }
+
+      cell.addEventListener('click', function() { selectDay(ds); });
+      return cell;
+    }
+
+    function selectDay(ds) {
+      selDay = ds;
+      renderCalendar();
+      renderDayPanel(ds);
+      // pré-preenche a data no modal
+      document.getElementById('ev-date').value = ds;
+    }
+
+    /* ─── Painel do dia ─── */
+    function renderDayPanel(ds) {
+      var parts  = ds.split('-');
+      var d      = parseInt(parts[2], 10);
+      var m      = parseInt(parts[1], 10) - 1;
+      var y      = parseInt(parts[0], 10);
+      var title  = document.getElementById('side-date-title');
+      title.textContent = d + ' de ' + MONTHS[m] + ' de ' + y;
+
+      var list   = document.getElementById('day-event-list');
+      var events = getEvents().filter(function(e){ return e.date === ds; });
+      list.innerHTML = '';
+
+      if (!events.length) {
+        list.innerHTML = '<div class="empty-state"><i class="fa-regular fa-calendar-check"></i>Nenhum evento neste dia.<br><small style="color:#00a708;cursor:pointer;font-weight:600;" onclick="document.getElementById(\'open-add-modal\').click()">+ Adicionar evento</small></div>';
+        return;
+      }
+
+      events.forEach(function(ev) {
+        var item = document.createElement('div');
+        item.className = 'event-item';
+
+        var bar  = document.createElement('div');
+        bar.className = 'event-color';
+        bar.style.background = TYPE_COLORS[ev.type] || '#64748b';
+        bar.style.alignSelf = 'stretch';
+
+        var body = document.createElement('div');
+        body.className = 'event-body';
+
+        var name = document.createElement('div');
+        name.className = 'event-name';
+        name.textContent = ev.name;
+
+        var meta = document.createElement('div');
+        meta.className = 'event-meta';
+        var ti = TYPE_ICONS[ev.type] || TYPE_ICONS.outro;
+        meta.innerHTML = '<i class="fas ' + ti.icon + '" style="color:' + ti.color + ';margin-right:4px;"></i>' + ti.label +
+          (ev.time ? ' · ' + ev.time : '') +
+          (ev.note ? '<br><span style="opacity:.8">' + ev.note + '</span>' : '');
+
+        body.appendChild(name);
+        body.appendChild(meta);
+
+        var del = document.createElement('button');
+        del.className = 'event-delete';
+        del.innerHTML = '<i class="fas fa-trash-alt"></i>';
+        del.title = 'Remover evento';
+        del.addEventListener('click', function() { deleteEvent(ev.id); });
+
+        item.appendChild(bar);
+        item.appendChild(body);
+        item.appendChild(del);
+        list.appendChild(item);
+      });
+    }
+
+    /* ─── Próximos eventos ─── */
+    function renderUpcoming() {
+      var container = document.getElementById('upcoming-list');
+      var tStr  = todayStr();
+      var limit = new Date(today.getTime() + 30 * 86400000);
+      var limitStr = limit.getFullYear() + '-' +
+        String(limit.getMonth()+1).padStart(2,'0') + '-' +
+        String(limit.getDate()).padStart(2,'0');
+
+      var events = getEvents()
+        .filter(function(e){ return e.date >= tStr && e.date <= limitStr; })
+        .sort(function(a,b){ return a.date.localeCompare(b.date); })
+        .slice(0, 5);
+
+      container.innerHTML = '';
+      if (!events.length) {
+        container.innerHTML = '<div class="empty-state"><i class="fas fa-check-circle"></i>Nenhum evento nos próximos 30 dias.</div>';
+        return;
+      }
+
+      events.forEach(function(ev) {
+        var parts = ev.date.split('-');
+        var d = parts[2]; var m = parseInt(parts[1],10)-1;
+
+        var item = document.createElement('div');
+        item.className = 'upcoming-item';
+
+        var dateBox = document.createElement('div');
+        dateBox.className = 'upcoming-date-box';
+        dateBox.innerHTML = '<span class="ud-day">' + parseInt(d,10) + '</span><span class="ud-mon">' + MONTHS_SHORT[m] + '</span>';
+
+        var body = document.createElement('div');
+        body.className = 'upcoming-body';
+        var ti = TYPE_ICONS[ev.type] || TYPE_ICONS.outro;
+        body.innerHTML =
+          '<div class="upcoming-name">' + ev.name + '</div>' +
+          '<div class="upcoming-sub"><i class="fas ' + ti.icon + '" style="color:' + ti.color + ';margin-right:4px;"></i>' +
+          ti.label + (ev.time ? ' · ' + ev.time : '') + '</div>';
+
+        item.appendChild(dateBox);
+        item.appendChild(body);
+        container.appendChild(item);
+      });
+    }
+
+    /* ─── Avisos / Notificações ─── */
+    function getNotifKey(id) { return 'nexa_cal_notif_shown_' + id; }
+
+    function checkNotifications() {
+      var tStr   = todayStr();
+      var events = getEvents();
+      var notifs = [];
+
+      events.forEach(function(ev) {
+        if (!ev.notif) return;
+        var days = parseInt(ev.notifDays, 10) || 0;
+        var evDate   = new Date(ev.date + 'T00:00:00');
+        var notifDate= new Date(evDate.getTime() - days * 86400000);
+        var ndStr    = notifDate.getFullYear() + '-' +
+          String(notifDate.getMonth()+1).padStart(2,'0') + '-' +
+          String(notifDate.getDate()).padStart(2,'0');
+
+        if (ndStr === tStr) {
+          notifs.push({ ev: ev, days: days });
+        }
+      });
+
+      renderNotifPanel(notifs);
+      renderNotifBadge(notifs.length);
+      showToastsForNew(notifs);
+    }
+
+    function renderNotifPanel(notifs) {
+      var container = document.getElementById('notif-list');
+      container.innerHTML = '';
+
+      if (!notifs.length) {
+        container.innerHTML = '<div class="empty-state"><i class="fas fa-bell-slash"></i>Nenhum aviso para hoje.</div>';
+        return;
+      }
+
+      notifs.forEach(function(n) {
+        var ev = n.ev;
+        var ti = TYPE_ICONS[ev.type] || TYPE_ICONS.outro;
+        var item = document.createElement('div');
+        item.className = 'event-item';
+
+        var bar = document.createElement('div');
+        bar.className = 'event-color';
+        bar.style.background = TYPE_COLORS[ev.type] || '#64748b';
+        bar.style.alignSelf = 'stretch';
+
+        var body = document.createElement('div');
+        body.className = 'event-body';
+
+        var evDate = ev.date.split('-');
+        var dateLabel = parseInt(evDate[2],10) + '/' + evDate[1] + '/' + evDate[0];
+        var whenLabel = n.days === 0 ? 'Hoje!' : 'Em ' + n.days + ' dia' + (n.days > 1 ? 's' : '');
+
+        body.innerHTML =
+          '<div class="event-name"><i class="fas ' + ti.icon + '" style="color:' + ti.color + ';margin-right:5px;"></i>' + ev.name + '</div>' +
+          '<div class="event-meta">' + dateLabel + (ev.time ? ' · ' + ev.time : '') + '<br><strong style="color:' + ti.color + '">' + whenLabel + '</strong>' +
+          (ev.note ? ' · ' + ev.note : '') + '</div>';
+
+        item.appendChild(bar);
+        item.appendChild(body);
+        container.appendChild(item);
+      });
+    }
+
+    function renderNotifBadge(count) {
+      var badge = document.getElementById('notif-badge');
+      if (count > 0) {
+        badge.textContent = count;
+        badge.style.display = 'inline-flex';
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+
+    function showToastsForNew(notifs) {
+      notifs.forEach(function(n) {
+        var key = getNotifKey(n.ev.id);
+        if (readJSON(key, false)) return;
+        writeJSON(key, true);
+        showToast(n.ev, n.days);
+      });
+    }
+
+    function showToast(ev, days) {
+      var container = document.getElementById('toast-container');
+      var ti = TYPE_ICONS[ev.type] || TYPE_ICONS.outro;
+      var whenLabel = days === 0 ? 'é hoje!' : 'em ' + days + ' dia' + (days > 1 ? 's' : '') + '.';
+
+      var toast = document.createElement('div');
+      toast.className = 'notif-toast type-' + ev.type;
+      toast.innerHTML =
+        '<div class="notif-toast-icon"><i class="fas ' + ti.icon + '" style="color:' + ti.color + '"></i></div>' +
+        '<div class="notif-toast-body">' +
+          '<div class="notif-toast-title">' + ev.name + '</div>' +
+          '<div class="notif-toast-sub">' + ti.label + ' ' + whenLabel + '</div>' +
+        '</div>' +
+        '<button class="notif-toast-close" aria-label="Fechar"><i class="fas fa-times"></i></button>';
+
+      toast.querySelector('.notif-toast-close').addEventListener('click', function() {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(40px)';
+        toast.style.transition = 'all 0.25s ease';
+        setTimeout(function(){ toast.remove(); }, 250);
+      });
+
+      container.appendChild(toast);
+      setTimeout(function() {
+        if (toast.parentNode) {
+          toast.style.opacity = '0';
+          toast.style.transform = 'translateX(40px)';
+          toast.style.transition = 'all 0.35s ease';
+          setTimeout(function(){ if(toast.parentNode) toast.remove(); }, 350);
+        }
+      }, 7000);
+    }
+
+    /* ─── CRUD ─── */
+    function addOrUpdateEvent(data) {
+      var events = getEvents();
+      if (editingId) {
+        var idx = events.findIndex(function(e){ return e.id === editingId; });
+        if (idx !== -1) {
+          data.id = editingId;
+          events[idx] = data;
+        }
+      } else {
+        data.id = 'ev_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
+        events.push(data);
+      }
+      saveEvents(events);
+      renderCalendar();
+      renderUpcoming();
+      checkNotifications();
+      if (selDay) renderDayPanel(selDay);
+    }
+
+    function deleteEvent(id) {
+      if (!confirm('Remover este evento?')) return;
+      var events = getEvents().filter(function(e){ return e.id !== id; });
+      saveEvents(events);
+      // limpa flag de notif
+      try { localStorage.removeItem(getNotifKey(id).replace('nexa_cal_notif_shown_', 'nexa_cal_notif_shown_')); } catch {}
+      renderCalendar();
+      renderUpcoming();
+      checkNotifications();
+      if (selDay) renderDayPanel(selDay);
+    }
+
+    /* ─── Modal ─── */
+    var modal  = document.getElementById('event-modal');
+
+    function openModal(prefillDate) {
+      editingId = null;
+      document.getElementById('modal-title').textContent = 'Novo evento';
+      document.getElementById('ev-name').value = '';
+      document.getElementById('ev-date').value = prefillDate || todayStr();
+      document.getElementById('ev-time').value = '';
+      document.getElementById('ev-note').value = '';
+      document.getElementById('ev-notif').checked = true;
+      document.getElementById('ev-notif-days').value = '1';
+      document.querySelector('input[name="ev-type"][value="prova"]').checked = true;
+      hideModalError();
+      modal.classList.add('open');
+      document.getElementById('ev-name').focus();
+    }
+
+    function closeModal() { modal.classList.remove('open'); editingId = null; }
+
+    function hideModalError() {
+      var el = document.getElementById('modal-error');
+      el.style.display = 'none'; el.textContent = '';
+    }
+
+    function showModalError(msg) {
+      var el = document.getElementById('modal-error');
+      el.textContent = msg; el.style.display = 'block';
+    }
+
+    document.getElementById('open-add-modal').addEventListener('click', function() {
+      openModal(selDay || todayStr());
+    });
+
+    document.getElementById('modal-close').addEventListener('click', closeModal);
+    document.getElementById('cancel-event').addEventListener('click', closeModal);
+    modal.addEventListener('click', function(e){ if (e.target === modal) closeModal(); });
+
+    document.getElementById('save-event').addEventListener('click', function() {
+      var name  = document.getElementById('ev-name').value.trim();
+      var date  = document.getElementById('ev-date').value;
+      var type  = document.querySelector('input[name="ev-type"]:checked').value;
+      var time  = document.getElementById('ev-time').value;
+      var note  = document.getElementById('ev-note').value.trim();
+      var notif = document.getElementById('ev-notif').checked;
+      var notifDays = parseInt(document.getElementById('ev-notif-days').value, 10);
+
+      if (!name)  return showModalError('Informe o nome do evento.');
+      if (!date)  return showModalError('Selecione uma data.');
+
+      hideModalError();
+      addOrUpdateEvent({ name: name, date: date, type: type, time: time, note: note, notif: notif, notifDays: notifDays });
+      closeModal();
+    });
+
+    /* ─── Navegação de mês ─── */
+    document.getElementById('prev-month').addEventListener('click', function() {
+      curMonth--;
+      if (curMonth < 0) { curMonth = 11; curYear--; }
+      renderCalendar();
+    });
+
+    document.getElementById('next-month').addEventListener('click', function() {
+      curMonth++;
+      if (curMonth > 11) { curMonth = 0; curYear++; }
+      renderCalendar();
+    });
+
+    document.getElementById('goto-today').addEventListener('click', function() {
+      curYear  = today.getFullYear();
+      curMonth = today.getMonth();
+      selectDay(todayStr());
+    });
+
+    /* ─── Init ─── */
+    renderCalendar();
+    renderUpcoming();
+    checkNotifications();
+
+    // Seleciona hoje por padrão
+    selectDay(todayStr());
+
+    // Recheck notificações a cada 60s (caso a página fique aberta virada a meia-noite)
+    setInterval(checkNotifications, 60000);
+
+  })();
+  </script>
+</body>
+</html>

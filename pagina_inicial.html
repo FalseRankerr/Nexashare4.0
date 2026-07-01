@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<!-- CORREÇÃO: lang alterado de "es" para "pt-br" -->
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NexaShare</title>
+  <link rel="icon" type="image/x-icon" href="./fotos/favicon.ico">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+  <div class="sidebar" id="sidebar">
+    <div>
+      <div class="header">
+        <img src="https://i.pravatar.cc/100" alt="usuario">
+        <div class="info">
+          <strong>Usuário</strong><br>
+          Estudante
+        </div>
+      </div>
+      <div class="menu">
+        <!-- CORREÇÃO: active aplicado corretamente na página atual -->
+        <div class="menu-item active"><i class="fas fa-home"></i><a href="./pagina_inicial.html"><span>Inicio</span></a></div>
+        <div class="menu-item"><i class="fa-solid fa-calculator"></i><a href="./calculadora.html"><span>Calculadora</span></a></div>
+        <div class="menu-item"><i class="fa-solid fa-book"></i><a href="./materias.html"><span>Matérias</span></a></div>
+        <div class="menu-item"><i class="fa-regular fa-calendar"></i><a href="./calendario.html"><span>Calendário</span></a></div>
+        <div class="menu-item"><i class="fa-solid fa-gamepad"></i><a href="./exercicios.html"><span>Exercícios</span></a></div>
+        <div class="menu-item"><i class="fa-solid fa-gear"></i><a href="#"><span>Configurações</span></a></div>
+      </div>
+    </div>
+    <div class="bottom">
+      <div class="menu-item"><i class="fas fa-user-circle"></i><a href="./perfil.html"><span>Perfil</span></a></div>
+      <div class="menu-item"><i class="fas fa-sign-out-alt"></i><a href="./Login/login.html"><span>Encerrar sessão</span></a></div>
+      <div class="toggle-theme">
+        <i class="fas fa-moon"></i><span>Modo Escuro</span>
+        <label class="switch">
+          <input type="checkbox" id="theme-toggle">
+        </label>
+      </div>
+      <div class="toggle-sidebar">
+        <i class="fas fa-angle-double-left" id="collapse-icon"></i><span>Colapsar</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-content">
+    <div class="welcome-message">
+      <section class="hero-carousel" aria-label="Carrossel principal">
+        <div class="carousel-stage">
+          <a class="carousel-slide active" href="./materias.html">
+            <img src="./fotos/Foto%20pros%20slide%201.avif" alt="Materias">
+            <div class="carousel-overlay">
+              <span class="carousel-kicker">Matérias</span>
+              <h2>Estude por área</h2>
+              <p>Abra os materiais e PDFs organizados por disciplina.</p>
+            </div>
+          </a>
+          <a class="carousel-slide" href="./exercicios.html">
+            <img src="./fotos/Foto%20pros%20slide%202.jpg" alt="Exercícios">
+            <div class="carousel-overlay">
+              <span class="carousel-kicker">Exercícios</span>
+              <h2>Treine na prática</h2>
+              <p>Acesse atividades e desafios para revisar o conteúdo.</p>
+            </div>
+          </a>
+          <a class="carousel-slide" href="./calculadora.html">
+            <img src="./fotos/Foto%20pros%20slide%203.jpg" alt="Calculadora">
+            <div class="carousel-overlay">
+              <span class="carousel-kicker">Calculadora</span>
+              <h2>Simule sua média</h2>
+              <p>Veja rapidamente como ficam seus benefícios no ENEM.</p>
+            </div>
+          </a>
+
+          <button class="carousel-arrow prev" type="button" aria-label="Slide anterior"><i class="fas fa-chevron-left"></i></button>
+          <button class="carousel-arrow next" type="button" aria-label="Próximo slide"><i class="fas fa-chevron-right"></i></button>
+        </div>
+
+        <div class="carousel-thumbs" aria-label="Miniaturas do carrossel">
+          <button class="carousel-thumb active" type="button" data-index="0">
+            <img src="./fotos/Foto%20pros%20slide%201.avif" alt="Materias">
+          </button>
+          <button class="carousel-thumb" type="button" data-index="1">
+            <img src="./fotos/Foto%20pros%20slide%202.jpg" alt="Exercícios">
+          </button>
+          <button class="carousel-thumb" type="button" data-index="2">
+            <img src="./fotos/Foto%20pros%20slide%203.jpg" alt="Calculadora">
+          </button>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+
+</html>

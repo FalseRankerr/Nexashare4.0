@@ -1,0 +1,12 @@
+# Redireciona rotas sem extensão para o HTML correto
+/login          /Login/login.html       200
+/cadastro       /Login/cadastro.html    200
+/admin          /admin.html             200
+/perfil         /perfil.html            200
+/calculadora    /calculadora.html       200
+/materias       /materias.html          200
+/exercicios     /exercicios.html        200
+/calendario     /calendario.html        200
+
+# Fallback: qualquer rota desconhecida vai para página inicial
+/*              /pagina_inicial.html    200

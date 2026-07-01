@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Exercícios | NexaShare</title>
+  <link rel="icon" type="image/x-icon" href="./fotos/favicon.ico">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .exercise-shell {
+      margin-left: 250px;
+      min-height: 100vh;
+      padding: 40px;
+      background: linear-gradient(180deg, #f6f8fc 0%, #edf2f7 100%);
+    }
+
+    body.dark .exercise-shell {
+      background: linear-gradient(180deg, #0f1724 0%, #111827 100%);
+      color: #fff;
+    }
+
+    .exercise-card {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 36px;
+      border-radius: 28px;
+      background: rgba(255,255,255,0.8);
+      box-shadow: 0 22px 60px rgba(0,0,0,0.12);
+      border: 1px solid rgba(0,0,0,0.06);
+      backdrop-filter: blur(12px);
+    }
+
+    body.dark .exercise-card {
+      background: rgba(17,24,39,0.78);
+      border-color: rgba(255,255,255,0.08);
+    }
+
+    .exercise-card h1 {
+      margin-top: 0;
+      font-size: clamp(32px, 4vw, 54px);
+    }
+
+    .exercise-card p {
+      max-width: 64ch;
+      line-height: 1.8;
+      color: inherit;
+      opacity: 0.9;
+    }
+
+    .exercise-links {
+      margin-top: 24px;
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .exercise-links a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px 18px;
+      border-radius: 14px;
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    .exercise-links .primary {
+      background: linear-gradient(135deg, #00a708, #0d7f16);
+      color: #fff;
+    }
+
+    .exercise-links .secondary {
+      background: rgba(0,0,0,0.06);
+      color: inherit;
+    }
+
+    body.dark .exercise-links .secondary {
+      background: rgba(255,255,255,0.08);
+    }
+
+    .exercise-hero {
+      min-height: auto;
+      padding-bottom: 28px;
+    }
+
+    .section-heading {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+
+    .section-heading h1,
+    .section-heading h2 {
+      margin: 4px 0 0;
+      font-size: clamp(24px, 2.6vw, 34px);
+    }
+
+    .eyebrow {
+      margin: 0;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-size: 0.78rem;
+      font-weight: 800;
+      color: #0d7f16;
+    }
+
+    body.dark .eyebrow {
+      color: #7edc8a;
+    }
+
+    .subject-section {
+      margin-top: 24px;
+    }
+
+    .subject-grid {
+      width: 100%;
+      max-width: 1280px;
+      display: grid;
+      grid-template-columns: repeat(1, 1fr);
+      gap: 18px;
+    }
+
+    .subject-card {
+      position: relative;
+      list-style: none;
+      display: block;
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow:
+        0 10px 40px rgba(0, 0, 0, 0.3),
+        0 2px 8px rgba(0, 0, 0, 0.16);
+      transition:
+        transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+      border: 0;
+      padding: 0;
+      width: 100%;
+      min-height: 210px;
+      background: transparent;
+      text-align: left;
+    }
+
+    .subject-card::before {
+      content: '';
+      display: block;
+      width: 100%;
+      padding-bottom: 34%;
+    }
+
+    .subject-card:hover {
+      transform: translateY(-6px);
+      box-shadow:
+        0 18px 50px rgba(0, 0, 0, 0.35),
+        0 8px 16px rgba(0, 0, 0, 0.22);
+    }
+
+    .subject-card__background {
+      position: absolute;
+      inset: 0;
+      background-size: cover;
+      background-position: center;
+      pointer-events: none;
+      filter: brightness(0.85) saturate(1.25) contrast(0.95);
+      transition:
+        filter 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+        transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      transform: scale(1);
+    }
+
+    .subject-card__background::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg,
+        transparent 0%,
+        rgba(0, 0, 0, 0.25) 48%,
+        rgba(0, 0, 0, 0.82) 100%);
+      opacity: 0.88;
+      transition: opacity 0.35s ease;
+    }
+
+    .subject-card:hover .subject-card__background {
+      transform: scale(1.08);
+      filter: brightness(1) saturate(1.35) contrast(1);
+    }
+
+    .subject-card:hover .subject-card__background::after {
+      opacity: 0.68;
+    }
+
+    .subject-card.is-active {
+      outline: 3px solid rgba(0, 167, 8, 0.75);
+      outline-offset: -3px;
+    }
+
+    .subject-card__content {
+      position: absolute;
+      inset: auto 0 0 0;
+      z-index: 2;
+      padding: 20px;
+      pointer-events: none;
+      transform: translateY(0);
+      transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .subject-card:hover .subject-card__content {
+      transform: translateY(-6px);
+    }
+
+    .subject-card__category {
+      color: rgba(255, 255, 255, 0.78);
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 8px;
+      display: inline-block;
+      position: relative;
+      padding-bottom: 5px;
+    }
+
+    .subject-card__category::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 28px;
+      height: 2px;
+      background: linear-gradient(90deg, #00d4ff, #00a708);
+      transition: width 0.3s ease;
+    }
+
+    .subject-card:hover .subject-card__category::after {
+      width: 100%;
+    }
+
+    .subject-card__heading {
+      color: rgba(255, 255, 255, 0.96);
+      font-size: 1.8rem;
+      font-weight: 800;
+      line-height: 1.2;
+      text-shadow:
+        2px 2px 8px rgba(0, 0, 0, 0.8),
+        0 0 20px rgba(0, 0, 0, 0.45);
+      letter-spacing: -0.4px;
+    }
+
+    .subject-card__hint {
+      margin-top: 10px;
+      color: rgba(255, 255, 255, 0.82);
+      font-size: 0.94rem;
+      line-height: 1.5;
+      max-width: 28ch;
+    }
+
+    .exercise-section {
+      margin-top: 26px;
+      max-width: 960px;
+      padding: 0;
+      background: transparent;
+      border: 0;
+      box-shadow: none;
+      backdrop-filter: none;
+    }
+
+    .exercise-section p {
+      max-width: 100%;
+    }
+
+    .exercise-prompt {
+      margin-bottom: 14px;
+      color: inherit;
+      opacity: 0.85;
+      font-weight: 600;
+    }
+
+    .exercise-list {
+      display: grid;
+      gap: 14px;
+    }
+
+    .exercise-item {
+      padding: 20px;
+      border-radius: 22px;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      background: rgba(255, 255, 255, 0.72);
+    }
+
+    body.dark .exercise-item {
+      border-color: rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .exercise-item.correct {
+      border-color: rgba(13, 127, 22, 0.34);
+      box-shadow: inset 0 0 0 1px rgba(13, 127, 22, 0.1);
+    }
+
+    .exercise-item.incorrect {
+      border-color: rgba(199, 43, 69, 0.34);
+      box-shadow: inset 0 0 0 1px rgba(199, 43, 69, 0.1);
+    }
+
+    .exercise-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+      font-size: 0.88rem;
+      color: inherit;
+      opacity: 0.8;
+    }
+
+    .exercise-item h3 {
+      margin: 0 0 8px;
+      font-size: 1.15rem;
+    }
+
+    .exercise-statement {
+      margin: 0;
+      line-height: 1.7;
+      opacity: 0.95;
+    }
+
+    .exercise-options {
+      display: grid;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .exercise-option {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: rgba(0, 0, 0, 0.04);
+      border: 1px solid transparent;
+      cursor: pointer;
+    }
+
+    body.dark .exercise-option {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .exercise-option input {
+      margin-top: 3px;
+    }
+
+    .exercise-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    .exercise-actions .small-btn {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-width: 138px;
+      padding: 12px 16px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.14);
+      transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        filter 0.2s ease,
+        background 0.2s ease;
+    }
+
+    .exercise-actions .small-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 30px rgba(0, 0, 0, 0.18);
+      filter: brightness(1.03);
+    }
+
+    .exercise-actions .small-btn:active {
+      transform: translateY(0);
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+    }
+
+    .exercise-actions .small-btn.primary {
+      background: linear-gradient(135deg, #00b014, #0d7f16);
+      color: #fff;
+    }
+
+    .exercise-actions .small-btn:not(.primary) {
+      background: rgba(255, 255, 255, 0.9);
+      color: #14311a;
+      border-color: rgba(13, 127, 22, 0.18);
+    }
+
+    body.dark .exercise-actions .small-btn:not(.primary) {
+      background: rgba(255, 255, 255, 0.08);
+      color: #eefcf0;
+      border-color: rgba(255, 255, 255, 0.08);
+    }
+
+    .exercise-actions .small-btn.primary::before {
+      content: '✓';
+      font-weight: 900;
+      font-size: 0.92rem;
+    }
+
+    .exercise-actions .small-btn:not(.primary)::before {
+      content: '◌';
+      font-weight: 900;
+      font-size: 0.92rem;
+      opacity: 0.8;
+    }
+
+    .exercise-feedback {
+      display: none;
+      margin-top: 14px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      line-height: 1.6;
+    }
+
+    .exercise-feedback.correct {
+      display: block;
+      background: rgba(13, 127, 22, 0.12);
+      color: #0a6d14;
+    }
+
+    body.dark .exercise-feedback.correct {
+      color: #d9ffd9;
+      background: rgba(94, 227, 140, 0.14);
+    }
+
+    .exercise-feedback.incorrect {
+      display: block;
+      background: rgba(199, 43, 69, 0.12);
+      color: #8d152d;
+    }
+
+    body.dark .exercise-feedback.incorrect {
+      color: #ffd2db;
+      background: rgba(255, 92, 119, 0.14);
+    }
+
+    @media (max-width: 900px) {
+      .exercise-shell {
+        margin-left: 0;
+        padding: 18px;
+      }
+
+      .subject-card::before {
+        padding-bottom: 52%;
+      }
+    }
+
+    @media (min-width: 600px) {
+      .subject-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (min-width: 1024px) {
+      .subject-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .subject-card__heading {
+        font-size: 1.9rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar" id="sidebar">
+    <div>
+      <div class="header">
+        <img src="https://i.pravatar.cc/100" alt="usuario">
+        <div class="info">
+          <strong>Usuário</strong><br>
+          Estudante
+        </div>
+      </div>
+      <div class="menu">
+        <div class="menu-item"><i class="fas fa-home"></i><a href="./pagina_inicial.html"><span>Inicio</span></a></div>
+        <div class="menu-item"><i class="fa-solid fa-calculator"></i><a href="./calculadora.html"><span>Calculadora</span></a></div>
+        <div class="menu-item"><i class="fa-solid fa-book"></i><a href="./materias.html"><span>Matérias</span></a></div>
+        <div class="menu-item"><i class="fa-regular fa-calendar"></i><a href="./calendario.html"><span>Calendário</span></a></div>
+        <div class="menu-item active"><i class="fa-solid fa-gamepad"></i><a href="./exercicios.html"><span>Exercícios</span></a></div>
+        <div class="menu-item"><i class="fa-solid fa-gear"></i><a href="#"><span>Configurações</span></a></div>
+      </div>
+    </div>
+    <div class="bottom">
+      <div class="menu-item"><i class="fas fa-user-circle"></i><a href="./perfil.html"><span>Perfil</span></a></div>
+      <div class="menu-item"><i class="fas fa-sign-out-alt"></i><a href="#"><span>Encerrar sessão</span></a></div>
+      <div class="toggle-theme">
+        <i class="fas fa-moon"></i><span>Modo Escuro</span>
+        <label class="switch">
+          <input type="checkbox" id="theme-toggle">
+        </label>
+      </div>
+      <div class="toggle-sidebar">
+        <i class="fas fa-angle-double-left" id="collapse-icon"></i><span>Colapsar</span>
+      </div>
+    </div>
+  </div>
+
+  <main class="exercise-shell">
+    <section class="exercise-card exercise-hero">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Exercícios</p>
+          <h1>Treino rápido</h1>
+        </div>
+      </div>
+
+      <p>Escolha uma matéria nos cards abaixo e resolva os exercícios simples daquela área.</p>
+
+      <section class="subject-section">
+        <div class="subject-grid" id="exercise-filters" aria-label="Selecionar matéria">
+          <button class="subject-card is-active" type="button" data-subject="Matemática" aria-pressed="true">
+            <div class="subject-card__background" style="background-image: url('./fotos/Matematica.jpeg')"></div>
+            <div class="subject-card__content">
+              <p class="subject-card__category">Exercícios</p>
+              <h3 class="subject-card__heading">Matemática</h3>
+              <p class="subject-card__hint">Contas simples, equações e lógica para aquecer.</p>
+            </div>
+          </button>
+          <button class="subject-card" type="button" data-subject="História" aria-pressed="false">
+            <div class="subject-card__background" style="background-image: url('./fotos/Historia.jpeg')"></div>
+            <div class="subject-card__content">
+              <p class="subject-card__category">Exercícios</p>
+              <h3 class="subject-card__heading">História</h3>
+              <p class="subject-card__hint">Questões rápidas de fatos e acontecimentos.</p>
+            </div>
+          </button>
+          <button class="subject-card" type="button" data-subject="Geografia" aria-pressed="false">
+            <div class="subject-card__background" style="background-image: url('./fotos/ChatGPT%20Image%2025%20de%20abr.%20de%202026,%2021_19_22.png')"></div>
+            <div class="subject-card__content">
+              <p class="subject-card__category">Exercícios</p>
+              <h3 class="subject-card__heading">Geografia</h3>
+              <p class="subject-card__hint">Clima, território e noções básicas do mapa.</p>
+            </div>
+          </button>
+          <button class="subject-card" type="button" data-subject="Português" aria-pressed="false">
+            <div class="subject-card__background" style="background-image: url('./fotos/Portugues.jpeg')"></div>
+            <div class="subject-card__content">
+              <p class="subject-card__category">Exercícios</p>
+              <h3 class="subject-card__heading">Língua Portuguesa</h3>
+              <p class="subject-card__hint">Leitura, interpretação e vocabulário.</p>
+            </div>
+          </button>
+          <button class="subject-card" type="button" data-subject="Biologia" aria-pressed="false">
+            <div class="subject-card__background" style="background-image: url('./fotos/ChatGPT%20Image%2025%20de%20abr.%20de%202026,%2021_23_08.png')"></div>
+            <div class="subject-card__content">
+              <p class="subject-card__category">Exercícios</p>
+              <h3 class="subject-card__heading">Biologia</h3>
+              <p class="subject-card__hint">Conceitos básicos de ecologia e vida.</p>
+            </div>
+          </button>
+          <button class="subject-card" type="button" data-subject="Inglês" aria-pressed="false">
+            <div class="subject-card__background" style="background-image: url('./fotos/ChatGPT%20Image%2025%20de%20abr.%20de%202026,%2022_13_44.png')"></div>
+            <div class="subject-card__content">
+              <p class="subject-card__category">Exercícios</p>
+              <h3 class="subject-card__heading">Língua Inglesa</h3>
+              <p class="subject-card__hint">Palavras e traduções para revisão rápida.</p>
+            </div>
+          </button>
+        </div>
+      </section>
+
+      <section class="exercise-section">
+        <p class="exercise-prompt" id="exercise-prompt">Selecione uma matéria para ver os exercícios.</p>
+        <div class="exercise-list" id="exercise-list"></div>
+      </section>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

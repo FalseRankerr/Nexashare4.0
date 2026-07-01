@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Perfil | NexaShare</title>
+  <link rel="icon" type="image/x-icon" href="./fotos/favicon.ico">
+  <link rel="stylesheet" href="./perfil.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="page-shell">
+    <aside class="profile-nav">
+      <div class="brand">
+        <a href="./pagina_inicial.html"><img src="./fotos/nexalogo.png" alt="NexaShare"></a>
+      </div>
+      <nav>
+        <a class="nav-link" href="./pagina_inicial.html"><i class="fas fa-home"></i><span>Início</span></a>
+        <a class="nav-link" href="./calendario.html"><i class="fa-regular fa-calendar"></i><span>Calendário</span></a>
+        <a class="nav-link active" href="./perfil.html"><i class="fas fa-user-circle"></i><span>Perfil</span></a>
+        <a class="nav-link auth-action" href="#"><i class="fas fa-sign-out-alt"></i><span>Encerrar sessão</span></a>
+      </nav>
+    </aside>
+
+    <main class="profile-main">
+      <section class="hero-card">
+        <div class="hero-copy">
+          <p class="eyebrow">Área de personalização</p>
+          <h1>Monte seu perfil do jeito que quiser</h1>
+          <p class="subtitle">Escolha uma foto, escreva uma bio e marque as matérias que mais combinam com você.</p>
+        </div>
+        <div class="hero-preview">
+          <img id="preview-photo" src="./fotos/nexalogo.png" alt="Foto do perfil">
+          <div>
+            <strong id="preview-name">Usuário</strong>
+            <p id="preview-bio">Sua bio vai aparecer aqui.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="editor-grid">
+        <form class="editor-card" id="profile-form">
+          <h2>Editar perfil</h2>
+
+          <label class="field">
+            <span>Foto de perfil</span>
+            <input type="file" id="profile-photo" accept="image/*">
+          </label>
+
+          <label class="field">
+            <span>Bio</span>
+            <textarea id="profile-bio" rows="5" maxlength="220" placeholder="Escreva algo sobre você..."></textarea>
+          </label>
+
+          <div class="field">
+            <span>Matérias de interesse</span>
+            <div class="subjects-grid" id="subjects-grid">
+              <label><input type="checkbox" value="Matemática"> Matemática</label>
+              <label><input type="checkbox" value="Português"> Português</label>
+              <label><input type="checkbox" value="História"> História</label>
+              <label><input type="checkbox" value="Geografia"> Geografia</label>
+              <label><input type="checkbox" value="Biologia"> Biologia</label>
+              <label><input type="checkbox" value="Física"> Física</label>
+              <label><input type="checkbox" value="Química"> Química</label>
+              <label><input type="checkbox" value="Redação"> Redação</label>
+              <label><input type="checkbox" value="Artes"> Artes</label>
+              <label><input type="checkbox" value="Inglês"> Inglês</label>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button type="submit">Salvar perfil</button>
+            <a href="./pagina_inicial.html" class="secondary">Voltar</a>
+          </div>
+          <p class="save-note" id="save-note"></p>
+        </form>
+
+        <aside class="summary-card">
+          <h2>Resumo</h2>
+          <div class="summary-item">
+            <span>Nome de usuário</span>
+            <strong id="summary-username">Usuário</strong>
+          </div>
+          <div class="summary-item">
+            <span>Bio</span>
+            <p id="summary-bio">Sem bio definida.</p>
+          </div>
+          <div class="summary-item">
+            <span>Matérias</span>
+            <div class="interest-tags" id="summary-interests"></div>
+          </div>
+        </aside>
+      </section>
+    </main>
+  </div>
+
+  <script src="./script.js"></script>
+  <script>
+    (function () {
+      var user;
+      try { user = JSON.parse(localStorage.getItem('nexa_logged_in')); } catch (e) { user = null; }
+      if (!user) {
+        window.location.href = './Login/login.html';
+        return;
+      }
+
+      var profileForm      = document.getElementById('profile-form');
+      var photoInput       = document.getElementById('profile-photo');
+      var bioInput         = document.getElementById('profile-bio');
+      var previewPhoto     = document.getElementById('preview-photo');
+      var previewName      = document.getElementById('preview-name');
+      var previewBio       = document.getElementById('preview-bio');
+      var summaryUsername  = document.getElementById('summary-username');
+      var summaryBio       = document.getElementById('summary-bio');
+      var summaryInterests = document.getElementById('summary-interests');
+      var saveNote         = document.getElementById('save-note');
+      var subjects         = Array.prototype.slice.call(document.querySelectorAll('#subjects-grid input[type="checkbox"]'));
+
+      // CORREÇÃO: perfil separado por email — cada usuário tem sua própria chave
+      function getProfileKey() {
+        var u = null;
+        try { u = JSON.parse(localStorage.getItem('nexa_logged_in')); } catch (e) {}
+        return 'nexa_profile_' + ((u && u.email) ? u.email : 'guest');
+      }
+
+      function getProfile() {
+        try { return JSON.parse(localStorage.getItem(getProfileKey())) || {}; } catch (e) { return {}; }
+      }
+
+      function saveProfile(profile) {
+        localStorage.setItem(getProfileKey(), JSON.stringify(profile));
+      }
+
+      function getDisplayName() {
+        return (user && user.username && user.username.trim()) ? user.username.trim() : 'Usuário';
+      }
+
+      function wireProfileAuthAction() {
+        var authLink = document.querySelector('.auth-action');
+        if (!authLink) return;
+
+        function refreshAuthLink() {
+          var currentUser = null;
+          try { currentUser = JSON.parse(localStorage.getItem('nexa_logged_in')); } catch (e) {}
+          var span = authLink.querySelector('span');
+          if (currentUser) {
+            authLink.setAttribute('href', '#');
+            if (span) span.textContent = 'Encerrar sessão';
+          } else {
+            authLink.setAttribute('href', './Login/login.html');
+            if (span) span.textContent = 'Fazer login';
+          }
+        }
+
+        authLink.addEventListener('click', function (ev) {
+          var currentUser = null;
+          try { currentUser = JSON.parse(localStorage.getItem('nexa_logged_in')); } catch (e) {}
+          if (currentUser) {
+            ev.preventDefault();
+            localStorage.removeItem('nexa_logged_in');
+            refreshAuthLink();
+            window.location.href = './Login/login.html';
+          }
+        });
+
+        refreshAuthLink();
+      }
+
+      function renderTags(list) {
+        summaryInterests.innerHTML = '';
+        if (!list || !list.length) {
+          summaryInterests.innerHTML = '<span class="empty-tag">Nenhuma matéria escolhida.</span>';
+          return;
+        }
+        list.forEach(function (item) {
+          var span = document.createElement('span');
+          span.className = 'tag';
+          span.textContent = item;
+          summaryInterests.appendChild(span);
+        });
+      }
+
+      function syncPreview() {
+        var profile   = getProfile();
+        var bio       = (bioInput.value || profile.bio || '').trim();
+        var interests = subjects.filter(function (cb) { return cb.checked; }).map(function (cb) { return cb.value; });
+
+        previewName.textContent      = getDisplayName();
+        previewBio.textContent       = bio || 'Sua bio vai aparecer aqui.';
+        summaryUsername.textContent  = getDisplayName();
+        summaryBio.textContent       = bio || 'Sem bio definida.';
+        renderTags(interests);
+
+        if (profile.photo) previewPhoto.src = profile.photo;
+      }
+
+      var stored = getProfile();
+      previewName.textContent     = getDisplayName();
+      summaryUsername.textContent = getDisplayName();
+      bioInput.value              = stored.bio || '';
+      previewBio.textContent      = stored.bio || 'Sua bio vai aparecer aqui.';
+      summaryBio.textContent      = stored.bio || 'Sem bio definida.';
+      if (stored.photo) previewPhoto.src = stored.photo;
+      if (Array.isArray(stored.interests)) {
+        subjects.forEach(function (cb) { cb.checked = stored.interests.indexOf(cb.value) !== -1; });
+      }
+      renderTags(stored.interests || []);
+
+      photoInput.addEventListener('change', function () {
+        var file = photoInput.files && photoInput.files[0];
+        if (!file) return;
+        var reader = new FileReader();
+        reader.onload = function (e) {
+          previewPhoto.src = e.target.result;
+          var profile = getProfile();
+          profile.photo = e.target.result;
+          saveProfile(profile);
+          // CORREÇÃO: foto também atualiza o avatar da sidebar nas outras páginas
+          // (ao salvar no localStorage, script.js lê em applySidebarUserInfo)
+          saveNote.textContent = 'Foto atualizada.';
+        };
+        reader.readAsDataURL(file);
+      });
+
+      bioInput.addEventListener('input', syncPreview);
+      subjects.forEach(function (cb) { cb.addEventListener('change', syncPreview); });
+
+      profileForm.addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        var profile = getProfile();
+        profile.bio       = (bioInput.value || '').trim();
+        profile.interests = subjects.filter(function (cb) { return cb.checked; }).map(function (cb) { return cb.value; });
+        if (!profile.photo && previewPhoto.src) profile.photo = previewPhoto.src;
+        saveProfile(profile);
+        // CORREÇÃO: preserva o role ao salvar perfil
+        localStorage.setItem('nexa_logged_in', JSON.stringify({
+          username: user.username || getDisplayName(),
+          name:     user.name     || getDisplayName(),
+          email:    user.email    || '',
+          role:     user.role     || 'user'
+        }));
+        saveNote.textContent = 'Perfil salvo com sucesso.';
+        syncPreview();
+      });
+
+      syncPreview();
+      wireProfileAuthAction();
+    })();
+  </script>
+</body>
+</html>
